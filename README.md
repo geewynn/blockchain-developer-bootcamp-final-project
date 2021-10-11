@@ -19,13 +19,13 @@ In this project, I created a DAPP food delivery supply chain solution on Ethereu
 I created UML activity, sequence, and state diagrams to showcase the development plan for the project.
 
 #### Activity Diagram
-![Activity Diagram](images/Activity diagram.png)
+![Activity Diagram](images/activity_diagram.png)
 
 #### Sequence Diagram
-![Sequence Diagram](images/Sequence diagram.png)
+![Sequence Diagram](images/sequence_diagram.png)
 
 #### State Diagram
-![State Diagram](images/uml/State diagram.png)
+![State Diagram](images/uml/state_diagram.png)
 
 #### Classes (Data Model)
-![Classes Diagram](images/Class diagram.png)
+![Classes Diagram](images/class_diagram.png)
