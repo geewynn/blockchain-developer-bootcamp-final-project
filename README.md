@@ -25,7 +25,7 @@ I created UML activity, sequence, and state diagrams to showcase the development
 ![Sequence Diagram](images/sequence_diagram.png)
 
 #### State Diagram
-![State Diagram](images/uml/state_diagram.png)
+![State Diagram](images/state_diagram.png)
 
 #### Classes (Data Model)
 ![Classes Diagram](images/class_diagram.png)
