@@ -1,10 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 
-contract SupplyChain {
+
+import './AccessControl/ConsumerRole.sol';
+import './AccessControl/RestaurantRole.sol';
+import './AccessControl/DispatcherRole.sol';
+
+import './Core/Ownable.sol';
+
+contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
 
   // define owner
-  address public owner;
+  address owner;
+
+  address deployer;
 
   // 'upc' universal product code
   uint upc;
@@ -35,8 +44,7 @@ contract SupplyChain {
       string productNotes;
       uint productPrice;
       State itemState;
-      address distributorID;
-      address retailerID;
+      address dispatcherID;
       address consumerID;
   }
 
@@ -141,12 +149,46 @@ contract SupplyChain {
     }
   }
 
+  function transferOwnershipToAccount(address _account) public onlyOwner notZeroAddress(_account) {
+      owner = _account;
+      transferOwnership(_account);
+    }
+
   function addRestaurantAccount(uint _sku, address _account) 
     public
     onlyOwner
     notZeroAddress
     {
       _addRestaurant(_account);
+      items[_sku].ownerID = _account;
+      transferOwnershipToAccount(_account);
+    }
+
+
+    function transferOwnershipToDispatcher(uint _sku, address _account) notZeroAddress(_account) public {
+      address dispatcher = items[_sku].dispatcherID;
+      require(_account == dispatcher, 'must be ready to be dispatched');
+      owner = dispatcher;
+    }
+
+
+    function enableDisapatcherAccount(uint _sku, address _account) public checkSKU(_sku) notZeroAddress(_account) {
+      addDispatcher(_account);
+      items[_sku].dispatcherID = _account;
+    }
+
+    function enableConsumerAccount(uint _sku, address _account) public onlyDispatcher checkSKU(_sku) notZeroAddress(_account) {
+      enableConsumer(_account);
+      items[_sku].consumerID = _account;
+    }
+
+
+
+    function transferOwnershipToConsumer(uint _sku, address _account) public notZeroAddress(_account) {
+      address consumer = items[_sku].consumerID;
+      require(_account == consumer, 'consumer account must be existing');
+      owner = consumer;
+      items[_sku].ownerID = consumer;
     }
 
 
