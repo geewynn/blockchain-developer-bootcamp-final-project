@@ -2,8 +2,6 @@
 pragma solidity >=0.4.22 <0.9.0;
 
 contract SupplyChain {
-  constructor() public {
-  }
 
   // define owner
   address public owner;
@@ -128,6 +126,30 @@ contract SupplyChain {
     (bool success,) = payable(distributor).call{value: amountToRefund}('');
     require(success, 'failed to send ether');
   }
+
+  constructor() public {
+    deployer = msg.sender;
+    owner = msg.sender;
+    sku = 0;
+    upc = 0;
+  }
+
+
+  function kill() public {
+    if(msg.sender == owner) {
+      selfdestruct(payable(owner));
+    }
+  }
+
+  function addRestaurantAccount(uint _sku, address _account) 
+    public
+    onlyOwner
+    notZeroAddress
+    {
+      _addRestaurant(_account);
+    }
+
+
 
 
 }
