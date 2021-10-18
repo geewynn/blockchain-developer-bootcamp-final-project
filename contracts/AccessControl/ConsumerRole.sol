@@ -5,7 +5,7 @@ import './Roles.sol';
 
 contract ConsumerRole {
     using Roles for Roles.Role;
-    Roles.Role private Consumer;
+    Roles.Role private consumer;
     
     event ConsumerAdded(address indexed account, uint timestamp);
     event ConsumerRemoved(address indexed account, uint timestamp);

@@ -26,6 +26,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
   enum State {
     Ordered,
     Payed,
+    Cooked,
     Confirmed,
     Processed,
     Packed,
@@ -53,22 +54,24 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
   event LogItemOrder(uint256 upc);
 
   // LogItemPayed
-  event LogItemPayed(uint256 upc);
+  event LogItemPayed(uint256 sku, uint timestamp);
 
   // LogItemConfirmed
-  event LogItemConfirmed(uint256 upc);
+  event LogItemConfirmed(uint256 sku, uint timestamp);
 
   // LogItemProcessed
-  event LogItemProcessed(uint256 upc);
+  event LogItemProcessed(uint256 sku, uint timestamp);
 
   // LogItemPacked
-  event LogItemPacked(uint256 upc);
+  event LogItemPacked(uint256 sku, uint timestamp);
 
   // LogItemDispatched
-  event LogItemDispatched(uint256 upc);
+  event LogItemDispatched(uint256 sku, uint timestamp);
 
   // LogitemReceived
-  event LogitemReceived(uint256 upc);
+  event LogitemReceived(uint256 sku, uint timestamp);
+
+  event LogItemCooked(uint256 sku, uint timestamp);
 
 
   modifier notZeroAddress(address _account) {
@@ -87,41 +90,46 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
   }
 
   modifier ordered(uint _sku) {
-    require(items[_sku].itemState == State.Ordered, 'not in harvested state');
+    require(items[_sku].itemState == State.Ordered, 'not in ordered state');
     _;
   }
 
   modifier payed(uint _sku) {
-    require(items[_sku].itemState == State.Payed, 'not in processed state');
+    require(items[_sku].itemState == State.Payed, 'not in payed state');
+    _;
+  }
+
+  modifier cooked(uint _sku) {
+    require(items[_sku].itemState == State.Cooked, 'not in cooked state');
     _;
   }
 
   modifier processed(uint _sku) {
-    require(items[_sku].itemState == State.Processed, 'not in packed state');
+    require(items[_sku].itemState == State.Processed, 'not in processed state');
     _;
   }
   
   modifier confirmed(uint _sku) {
-      require(items[_sku].itemState == State.Confirmed, 'status: not up for sale');
+      require(items[_sku].itemState == State.Confirmed, 'status: not confirmed by consumer');
       _;
   }
 
   modifier packed(uint _sku) {
-      require(items[_sku].itemState == State.Packed, 'status: not up for sale');
+      require(items[_sku].itemState == State.Packed, 'not in packed state');
       _;
   }
 
   modifier dispatch(uint _sku) {
-      require(items[_sku].itemState == State.Dispatched, 'status: not up for sale');
+      require(items[_sku].itemState == State.Dispatched, 'not ready for dispatch');
       _;
   }
 
   modifier received(uint _sku) {
-      require(items[_sku].itemState == State.Received, 'status: not up for sale');
+      require(items[_sku].itemState == State.Received, 'not in received state');
       _;
   }
   
-    modifier paidEnough(uint _price) {
+  modifier paidEnough(uint _price) {
     require(msg.value >= _price, 'amount paid must be higher than item price');
     _;
   }
@@ -191,7 +199,86 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
       items[_sku].ownerID = consumer;
     }
 
+  // comeback to this
+    function OrderItem(
+      uint _sku
+      ) public onlyConsumer {
+        items[_sku].itemState = State.Ordered;
+        emit LogItemOrder(sku, block.timestamp);
+      }
+
+    
+    function PayForItem(uint _sku) public checkSKU(_sku) ordered(_sku) onlyConsumer {
+      items[_sku].itemState = State.Payed;
+      emit LogItemPayed(_sku, block.timestamp);
+    }
 
 
+    function ReceiveOrder(uint _sku) public checkSKU(_sku) payed(_sku) onlyRestaurant {
+      items[_sku].itemState = State.Received;
+      emit LogitemReceived(_sku, block.timestamp);
+    }
+
+
+    function CookOrder(
+      string memory _originRestaurantID, 
+      string memory _originRestaurantName, 
+      string memory _originRestaurantInfo,
+      string memory _productNotes
+    ) public onlyRestaurant {
+      sku += 1;
+      uint productID = upc + sku;
+      items[sku] = Item({
+        sku: sku,
+        upc: sku,
+        ownerID: owner,
+        originRestaurantID: _originRestaurantID,
+        originRestaurantName: _originRestaurantName,
+        originRestaurantInfo: _originRestaurantInfo,
+        productID: productID,
+        productNotes: _productNotes,
+        productPrice: 0,
+        itemState: State.Cooked,
+        dispatcherID: address(0),
+        consumerID: address(0)
+      });
+
+      emit LogItemCooked(sku, block.timestamp);
+    }
+
+    function ProcessOrder(uint _sku) public checkSKU(_sku) cooked(_sku) onlyRestaurant  {
+      items[_sku].itemState = State.Processed;
+      emit LogItemProcessed(_sku, block.timestamp);
+    }
+
+    function PackageOrder(uint _sku) public checkSKU(_sku) processed(_sku) onlyRestaurant  {
+      items[_sku].itemState = State.Packed;
+      emit LogItemPacked(_sku, block.timestamp);
+    }
+
+    function DispatchOrder (uint _sku) public checkSKU(_sku) packed(_sku) onlyRestaurant  {
+      items[_sku].itemState = State.Dispatched;
+      emit LogItemDispatched(_sku, block.timestamp);
+    }
+
+
+    function ReceiveDispatchedOrder() public checkSKU(_sku) dispatched(_sku) onlyDispatcher  {
+      items[_sku].itemState = State.Dispatched;
+      transferOwnershipToDispatcher(_sku, msg.sender);
+      emit LogitemReceived(_sku, block.timestamp);
+    }
+
+
+    function DispatcherDispatchesOrder () public checkSKU(_sku) dispatched(_sku) onlyDispatcher  {
+      items[_sku].itemState = State.Dispatched;
+      emit LogItemDispatched(_sku, block.timestamp);
+    }
+
+
+    function ConsumerReceivesItem () public checkSKU(_sku) dispatched(_sku) onlyDispatcher  {
+      items[_sku].itemState = State.Dispatched;
+      transferOwnershipToConsumer(_sku, msg.sender);
+      emit LogItemConfirmed(_sku, block.timestamp);
+    }
 
 }
