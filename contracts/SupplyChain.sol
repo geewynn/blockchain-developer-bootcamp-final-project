@@ -208,8 +208,14 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
       }
 
     
-    function PayForItem(uint _sku) public checkSKU(_sku) ordered(_sku) onlyConsumer {
+    function PayForItem(uint _sku) public payable checkSKU(_sku) ordered(_sku) onlyConsumer {
+      address consumer = msg.sender;
+      items[_sku].consumerID = consumer;
+      address restaurant = items[_sku].originRestaurantID;
+      uint price = items[_sku].productPrice;
       items[_sku].itemState = State.Payed;
+      (bool succes, ) = payable(restaurant).call{value: price}('');
+      require(succes, 'failed to send ether to restaurant');
       emit LogItemPayed(_sku, block.timestamp);
     }
 
@@ -280,5 +286,104 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
       transferOwnershipToConsumer(_sku, msg.sender);
       emit LogItemConfirmed(_sku, block.timestamp);
     }
+
+
+    function getItemStatus(uint _sku) public checkSKU(_sku) view returns(string memory status) {
+    uint itemStatus = uint(items[_sku].itemState);
+    if(itemStatus == 0) {
+        status = 'Ordered';
+    } else if(itemStatus == 1) {
+        status = 'Payed';
+    } else if(itemStatus == 2) {
+        status = 'Cooked';
+        
+    }  else if(itemStatus == 3) {
+        status = 'Confirmed';
+    }
+    else if(itemStatus == 4) {
+        status = 'Processed';
+    } else if(itemStatus == 5) {
+        status = 'Packed';
+    } else if(itemStatus == 6) {
+        status = 'Dispatched';
+    } else if(itemStatus == 7) {
+        status = 'Received';
+    }
+    
+  }
+  
+    
+  function getTotalItems() public view returns(uint) {
+    return sku;
+  }
+  
+  
+  function getOwner() public view returns(address) {
+    return owner;
+  }
+
+  function getItemOwner(uint _sku) checkSKU(_sku) public view returns(address) {
+    return items[_sku].ownerID;
+  }
+
+
+  function fetchRestaurantDetails(uint _upc)  public view returns (
+    uint itemSKU,
+    address ownerID,
+    address originRestaurantID,
+    string memory originRestaurantInfo,
+    string memory originRestaurantName
+  ){
+    require(_upc > 0, 'sku cannot be 0');
+    return (
+      items[_upc].sku,
+      items[_upc].ownerID,
+      items[_upc].originRestaurantID,
+      items[_upc].originRestaurantInfo,
+      items[_upc].originRestaurantName,
+    );
+      
+  }
+  
+  
+    
+  function fetchProductDetails(uint _upc)  public checkSKU(_upc) view returns (
+    uint itemSKU,
+    uint itemUPC,
+    uint productID,
+    string memory productNotes,
+    uint productPrice,
+    string memory status,
+    address dispatcherID,
+    address consumerID
+    ) {
+      itemSKU = items[_upc].sku;
+      itemUPC = items[_upc].upc;
+      productID = items[_upc].productID;
+      productNotes = items[_upc].productNotes;
+      productPrice = items[_upc].productPrice;
+      uint itemState = uint(items[_upc].itemState);
+     if(itemStatus == 0) {
+        status = 'Ordered';
+    } else if(itemStatus == 1) {
+        status = 'Payed';
+    } else if(itemStatus == 2) {
+        status = 'Cooked';
+        
+    }  else if(itemStatus == 3) {
+        status = 'Confirmed';
+    }
+    else if(itemStatus == 4) {
+        status = 'Processed';
+    } else if(itemStatus == 5) {
+        status = 'Packed';
+    } else if(itemStatus == 6) {
+        status = 'Dispatched';
+    } else if(itemStatus == 7) {
+        status = 'Received';
+    }
+      dispatcherID = items[_upc].dispatcherID;
+      consumerID = items[_upc].consumerID;
+  }
 
 }
