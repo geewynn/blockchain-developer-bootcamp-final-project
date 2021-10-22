@@ -25,7 +25,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
 
   enum State {
     Ordered,
-    Payed,
+    paid,
     Cooked,
     Confirmed,
     Processed,
@@ -53,8 +53,8 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
   // LogItemOrder
   event LogItemOrder(uint256 upc, uint timestamp);
 
-  // LogItemPayed
-  event LogItemPayed(uint256 sku, uint timestamp);
+  // LogItempaid
+  event LogItempaid(uint256 sku, uint timestamp);
 
   // LogItemConfirmed
   event LogItemConfirmed(uint256 sku, uint timestamp);
@@ -94,8 +94,8 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
     _;
   }
 
-  modifier payed(uint _sku) {
-    require(items[_sku].itemState == State.Payed, 'not in payed state');
+  modifier paid(uint _sku) {
+    require(items[_sku].itemState == State.paid, 'not in paid state');
     _;
   }
 
@@ -213,14 +213,14 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
       items[_sku].consumerID = consumer;
       address restaurant = items[_sku].originRestaurantID;
       uint price = items[_sku].productPrice;
-      items[_sku].itemState = State.Payed;
+      items[_sku].itemState = State.paid;
       (bool succes, ) = payable(restaurant).call{value: price}('');
       require(succes, 'failed to send ether to restaurant');
-      emit LogItemPayed(_sku, block.timestamp);
+      emit LogItempaid(_sku, block.timestamp);
     }
 
 
-    function ReceiveOrder(uint _sku) public checkSKU(_sku) payed(_sku) onlyRestaurant {
+    function ReceiveOrder(uint _sku) public checkSKU(_sku) paid(_sku) onlyRestaurant {
       items[_sku].itemState = State.Received;
       emit LogitemReceived(_sku, block.timestamp);
     }
@@ -292,7 +292,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
     if(itemStatus == 0) {
         status = 'Ordered';
     } else if(itemStatus == 1) {
-        status = 'Payed';
+        status = 'paid';
     } else if(itemStatus == 2) {
         status = 'Cooked';
         
@@ -365,7 +365,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
      if(itemState == 0) {
         status = 'Ordered';
     } else if(itemState == 1) {
-        status = 'Payed';
+        status = 'paid';
     } else if(itemState == 2) {
         status = 'Cooked';
         
