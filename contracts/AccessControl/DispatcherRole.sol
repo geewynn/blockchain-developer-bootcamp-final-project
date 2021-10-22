@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.22 <0.9.0;
+pragma solidity >=0.5.0 <0.9.0;
 
 import './Roles.sol';
 
 contract DispatcherRole {
     using Roles for Roles.Role;
-    Roles.Role private Dispatcher;
+    Roles.Role private dispatcher;
     
     event DispatcherAdded(address indexed account, uint timestamp);
     event DispatcherRemoved(address indexed account, uint timestamp);

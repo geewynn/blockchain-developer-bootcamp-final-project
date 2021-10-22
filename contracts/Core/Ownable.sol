@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.22 <0.9.0;
+pragma solidity >=0.5.0 <0.9.0;
 
 
 contract Ownable {
@@ -18,7 +18,7 @@ contract Ownable {
 
 
     function isOwner() public view returns(bool) {
-        return msg.sender == origOwner;
+        return msg.sender == originalOwner;
     }
 
     modifier onlyOwner() {
@@ -37,7 +37,7 @@ contract Ownable {
     }
 
     function renounceOwnership() public onlyOwner {
-        emit TransferOwnership(origOwner, address(0));
-        origOwner = address(0);
+        emit TransferOwnership(originalOwner, address(0));
+        originalOwner = address(0);
   }
 }

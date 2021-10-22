@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.22 <0.9.0;
+pragma solidity >=0.5.0 <0.9.0;
 
 
 import './AccessControl/ConsumerRole.sol';
@@ -51,7 +51,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
 
 
   // LogItemOrder
-  event LogItemOrder(uint256 upc);
+  event LogItemOrder(uint256 upc, uint timestamp);
 
   // LogItemPayed
   event LogItemPayed(uint256 sku, uint timestamp);
@@ -135,15 +135,15 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
   }
   
   modifier checkValue(uint _sku) {
-      _;
-      address distributor = items[_sku].distributorID;
+    _;
+    address dispatcher = items[_sku].dispatcherID;
     uint price = items[_sku].productPrice;
     uint amountToRefund = msg.value - price;
-    (bool success,) = payable(distributor).call{value: amountToRefund}('');
+    (bool success,) = payable(dispatcher).call{value: amountToRefund}('');
     require(success, 'failed to send ether');
   }
 
-  constructor() public {
+  constructor() {
     deployer = msg.sender;
     owner = msg.sender;
     sku = 0;
@@ -165,7 +165,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
   function addRestaurantAccount(uint _sku, address _account) 
     public
     onlyOwner
-    notZeroAddress
+    notZeroAddress(_account)
     {
       _addRestaurant(_account);
       items[_sku].ownerID = _account;
@@ -181,12 +181,12 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
 
 
     function enableDisapatcherAccount(uint _sku, address _account) public checkSKU(_sku) notZeroAddress(_account) {
-      addDispatcher(_account);
+      _addDispatcher(_account);
       items[_sku].dispatcherID = _account;
     }
 
     function enableConsumerAccount(uint _sku, address _account) public onlyDispatcher checkSKU(_sku) notZeroAddress(_account) {
-      enableConsumer(_account);
+      _addConsumer(_account);
       items[_sku].consumerID = _account;
     }
 
@@ -208,7 +208,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
       }
 
     
-    function PayForItem(uint _sku) public payable checkSKU(_sku) ordered(_sku) onlyConsumer {
+    function PayForItem(uint _sku) public payable checkSKU(_sku) paidEnough(items[_sku].productPrice) checkValue(_sku) ordered(_sku) onlyConsumer {
       address consumer = msg.sender;
       items[_sku].consumerID = consumer;
       address restaurant = items[_sku].originRestaurantID;
@@ -227,7 +227,6 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
 
 
     function CookOrder(
-      string memory _originRestaurantID, 
       string memory _originRestaurantName, 
       string memory _originRestaurantInfo,
       string memory _productNotes
@@ -238,7 +237,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
         sku: sku,
         upc: sku,
         ownerID: owner,
-        originRestaurantID: _originRestaurantID,
+        originRestaurantID: owner,
         originRestaurantName: _originRestaurantName,
         originRestaurantInfo: _originRestaurantInfo,
         productID: productID,
@@ -268,20 +267,20 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
     }
 
 
-    function ReceiveDispatchedOrder() public checkSKU(_sku) dispatched(_sku) onlyDispatcher  {
+    function ReceiveDispatchedOrder(uint _sku) public checkSKU(_sku) dispatch(_sku) onlyDispatcher  {
       items[_sku].itemState = State.Dispatched;
       transferOwnershipToDispatcher(_sku, msg.sender);
       emit LogitemReceived(_sku, block.timestamp);
     }
 
 
-    function DispatcherDispatchesOrder () public checkSKU(_sku) dispatched(_sku) onlyDispatcher  {
+    function DispatcherDispatchesOrder(uint _sku) public checkSKU(_sku) dispatch(_sku) onlyDispatcher  {
       items[_sku].itemState = State.Dispatched;
       emit LogItemDispatched(_sku, block.timestamp);
     }
 
 
-    function ConsumerReceivesItem () public checkSKU(_sku) dispatched(_sku) onlyDispatcher  {
+    function ConsumerReceivesItem(uint _sku) public checkSKU(_sku) dispatch(_sku) onlyDispatcher  {
       items[_sku].itemState = State.Dispatched;
       transferOwnershipToConsumer(_sku, msg.sender);
       emit LogItemConfirmed(_sku, block.timestamp);
@@ -327,23 +326,23 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
   }
 
 
-  function fetchRestaurantDetails(uint _upc)  public view returns (
-    uint itemSKU,
-    address ownerID,
-    address originRestaurantID,
-    string memory originRestaurantInfo,
-    string memory originRestaurantName
-  ){
-    require(_upc > 0, 'sku cannot be 0');
-    return (
-      items[_upc].sku,
-      items[_upc].ownerID,
-      items[_upc].originRestaurantID,
-      items[_upc].originRestaurantInfo,
-      items[_upc].originRestaurantName,
-    );
+  // function fetchRestaurantDetails(uint _upc)  public view returns (
+  //   uint itemSKU,
+  //   address ownerID,
+  //   address originRestaurantID,
+  //   string memory originRestaurantInfo,
+  //   string memory originRestaurantName
+  // ){
+  //   require(_upc > 0, 'sku cannot be 0');
+  //   return (
+  //     items[_upc].sku,
+  //     items[_upc].ownerID,
+  //     items[_upc].originRestaurantID,
+  //     items[_upc].originRestaurantInfo,
+  //     items[_upc].originRestaurantName,
+  //   );
       
-  }
+  // }
   
   
     
@@ -363,23 +362,23 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
       productNotes = items[_upc].productNotes;
       productPrice = items[_upc].productPrice;
       uint itemState = uint(items[_upc].itemState);
-     if(itemStatus == 0) {
+     if(itemState == 0) {
         status = 'Ordered';
-    } else if(itemStatus == 1) {
+    } else if(itemState == 1) {
         status = 'Payed';
-    } else if(itemStatus == 2) {
+    } else if(itemState == 2) {
         status = 'Cooked';
         
-    }  else if(itemStatus == 3) {
+    }  else if(itemState == 3) {
         status = 'Confirmed';
     }
-    else if(itemStatus == 4) {
+    else if(itemState == 4) {
         status = 'Processed';
-    } else if(itemStatus == 5) {
+    } else if(itemState == 5) {
         status = 'Packed';
-    } else if(itemStatus == 6) {
+    } else if(itemState == 6) {
         status = 'Dispatched';
-    } else if(itemStatus == 7) {
+    } else if(itemState == 7) {
         status = 'Received';
     }
       dispatcherID = items[_upc].dispatcherID;
