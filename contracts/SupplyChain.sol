@@ -25,7 +25,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
 
   enum State {
     Ordered,
-    paid,
+    Paid,
     Cooked,
     Confirmed,
     Processed,
@@ -53,8 +53,8 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
   // LogItemOrder
   event LogItemOrder(uint256 upc, uint timestamp);
 
-  // LogItempaid
-  event LogItempaid(uint256 sku, uint timestamp);
+  // LogItemPaid
+  event LogItemPaid(uint256 sku, uint timestamp);
 
   // LogItemConfirmed
   event LogItemConfirmed(uint256 sku, uint timestamp);
@@ -95,7 +95,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
   }
 
   modifier paid(uint _sku) {
-    require(items[_sku].itemState == State.paid, 'not in paid state');
+    require(items[_sku].itemState == State.Paid, 'not in paid state');
     _;
   }
 
@@ -213,10 +213,10 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
       items[_sku].consumerID = consumer;
       address restaurant = items[_sku].originRestaurantID;
       uint price = items[_sku].productPrice;
-      items[_sku].itemState = State.paid;
+      items[_sku].itemState = State.Paid;
       (bool succes, ) = payable(restaurant).call{value: price}('');
       require(succes, 'failed to send ether to restaurant');
-      emit LogItempaid(_sku, block.timestamp);
+      emit LogItemPaid(_sku, block.timestamp);
     }
 
 
@@ -292,7 +292,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
     if(itemStatus == 0) {
         status = 'Ordered';
     } else if(itemStatus == 1) {
-        status = 'paid';
+        status = 'Paid';
     } else if(itemStatus == 2) {
         status = 'Cooked';
         
@@ -365,7 +365,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
      if(itemState == 0) {
         status = 'Ordered';
     } else if(itemState == 1) {
-        status = 'paid';
+        status = 'Paid';
     } else if(itemState == 2) {
         status = 'Cooked';
         
