@@ -326,23 +326,24 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
   }
 
 
-  // function fetchRestaurantDetails(uint _upc)  public view returns (
-  //   uint itemSKU,
-  //   address ownerID,
-  //   address originRestaurantID,
-  //   string memory originRestaurantInfo,
-  //   string memory originRestaurantName
-  // ){
-  //   require(_upc > 0, 'sku cannot be 0');
-  //   return (
-  //     items[_upc].sku,
-  //     items[_upc].ownerID,
-  //     items[_upc].originRestaurantID,
-  //     items[_upc].originRestaurantInfo,
-  //     items[_upc].originRestaurantName,
-  //   );
+  function fetchRestaurantDetails(uint _upc)  public view returns (
+    uint itemSKU,
+    address ownerID,
+    address originRestaurantID,
+    string memory originRestaurantInfo,
+    string memory originRestaurantName
+  )
+  {
+    require(_upc > 0, 'sku cannot be 0');
+    return (
+      items[_upc].sku,
+      items[_upc].ownerID,
+      items[_upc].originRestaurantID,
+      items[_upc].originRestaurantInfo,
+      items[_upc].originRestaurantName
+    );
       
-  // }
+  }
   
   
     
