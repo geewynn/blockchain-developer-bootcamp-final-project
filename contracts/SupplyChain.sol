@@ -26,12 +26,14 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
   enum State {
     Ordered,
     Paid,
+    Received,
     Cooked,
-    Confirmed,
     Processed,
     Packed,
     Dispatched,
-    Received
+    DispatchedReceived,
+    DispatchSent,
+    Confirmed
   }
 
   struct Item {
@@ -69,9 +71,13 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
   event LogItemDispatched(uint256 sku, uint timestamp);
 
   // LogitemReceived
-  event LogitemReceived(uint256 sku, uint timestamp);
+  event LogItemReceived(uint256 sku, uint timestamp);
 
   event LogItemCooked(uint256 sku, uint timestamp);
+
+  event LogDis(uint256 sku, uint timestamp);
+
+  event LogDispatchSent(uint256 sku, uint timestamp);
 
 
   modifier notZeroAddress(address _account) {
@@ -116,6 +122,16 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
 
   modifier packed(uint _sku) {
       require(items[_sku].itemState == State.Packed, 'not in packed state');
+      _;
+  }
+  
+  modifier dispatchersent(uint _sku) {
+      require(items[_sku].itemState == State.DispatchSent, 'not ready to be sent to consumer');
+      _;
+  }
+
+  modifier dispatcherreceive(uint _sku) {
+      require(items[_sku].itemState == State.DispatchedReceived, 'not ready to be sent to consumer');
       _;
   }
 
@@ -222,7 +238,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
 
     function ReceiveOrder(uint _sku) public checkSKU(_sku) paid(_sku) onlyRestaurant {
       items[_sku].itemState = State.Received;
-      emit LogitemReceived(_sku, block.timestamp);
+      emit LogItemReceived(_sku, block.timestamp);
     }
 
 
@@ -268,21 +284,21 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
 
 
     function ReceiveDispatchedOrder(uint _sku) public checkSKU(_sku) dispatch(_sku) onlyDispatcher  {
-      items[_sku].itemState = State.Dispatched;
+      items[_sku].itemState = State.DispatchedReceived;
       transferOwnershipToDispatcher(_sku, msg.sender);
-      emit LogitemReceived(_sku, block.timestamp);
+      emit LogDis(_sku, block.timestamp);
     }
 
 
-    function DispatcherDispatchesOrder(uint _sku) public checkSKU(_sku) dispatch(_sku) onlyDispatcher  {
-      items[_sku].itemState = State.Dispatched;
-      emit LogItemDispatched(_sku, block.timestamp);
+    function DispatcherDispatchesOrder(uint _sku) public checkSKU(_sku)  dispatcherreceive(_sku) onlyDispatcher  {
+      items[_sku].itemState = State.DispatchSent;
+      emit LogDispatchSent(_sku, block.timestamp);
     }
 
 
-    function ConsumerReceivesItem(uint _sku) public checkSKU(_sku) dispatch(_sku) onlyDispatcher  {
-      items[_sku].itemState = State.Dispatched;
-      transferOwnershipToConsumer(_sku, msg.sender);
+    function ConsumerReceivesItem(uint _sku) public checkSKU(_sku) dispatchersent(_sku) onlyConsumer  {
+      items[_sku].itemState = State.Confirmed;
+      // transferOwnershipToConsumer(_sku, msg.sender);
       emit LogItemConfirmed(_sku, block.timestamp);
     }
 
@@ -294,10 +310,10 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
     } else if(itemStatus == 1) {
         status = 'Paid';
     } else if(itemStatus == 2) {
-        status = 'Cooked';
+        status = 'Received';
         
     }  else if(itemStatus == 3) {
-        status = 'Confirmed';
+        status = 'Cooked';
     }
     else if(itemStatus == 4) {
         status = 'Processed';
@@ -306,7 +322,11 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
     } else if(itemStatus == 6) {
         status = 'Dispatched';
     } else if(itemStatus == 7) {
-        status = 'Received';
+        status = 'DispatchedReceived';
+    } else if(itemStatus == 8) {
+        status = 'DispatchSent';
+    } else if(itemStatus == 9) {
+        status = 'Confirmed';
     }
     
   }
@@ -368,10 +388,10 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
     } else if(itemState == 1) {
         status = 'Paid';
     } else if(itemState == 2) {
-        status = 'Cooked';
+        status = 'Received';
         
     }  else if(itemState == 3) {
-        status = 'Confirmed';
+        status = 'Cooked';
     }
     else if(itemState == 4) {
         status = 'Processed';
@@ -380,8 +400,12 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
     } else if(itemState == 6) {
         status = 'Dispatched';
     } else if(itemState == 7) {
-        status = 'Received';
-    }
+        status = 'DispatchedReceived';
+    } else if(itemState == 8) {
+        status = 'DispatchSent';
+    } else if(itemState == 9) {
+        status = 'Confirmed';
+    } 
       dispatcherID = items[_upc].dispatcherID;
       consumerID = items[_upc].consumerID;
   }
