@@ -5,8 +5,11 @@ import { TabsContext } from '../contexts/tabs-context'
 import Tabs from '../tabs/tabs.component'
 
 
+import Tippy from '@tippyjs/react'
+import 'tippy.js/dist/tippy.css'
+
 import { ContentWrapper, DappContentWrapper, InputWrapper, OverviewWrapper, ProductWrapper, ToolTip } from './content.style'
-import { toWei, fromWei } from '../utils/conversion'
+import { toWei, fromWei } from '../../utils/conversion'
 
 
 const Content = () => {
@@ -56,7 +59,7 @@ const Content = () => {
     const [consumer, setConsumer] = useState(initialConsumerState)
     const handleAddConsumerChange = e => {
         const { name, value } = e.target
-        setRestaurant(prev => ({...prev, [name]: value}))
+        setConsumer(prev => ({...prev, [name]: value}))
     }
    
     const addConsumerAccount  = async () => {
@@ -242,22 +245,24 @@ const Content = () => {
     }
 
 
-    /* Handle Dispatcher dispatch Item ************************ */
-    const [receiveDispatcherDispatchSKU, setConsumerReceivesSKU] = useState('')
+    
+     /* Handle Dispatcher dispatch Item ************************ */
+     const [receiveDispatcherDispatchSKU, setDispatcherDispatchSKU] = useState('')
+
+     const handleDispatcherDispatch = async () => {
+         try {
+         const receivedResult = await contract.methods.DispatcherDispatchesOrder(receiveDispatcherDispatchSKU).send({from: web3Account})
+         console.log('dispatcher dispatches order', receivedResult)
+         } catch(err) {
+         console.log(err)
+         }
+     }
+
+     
+    /* Handle consumer receives Item ************************ */
+    const [receiveConsumerReceivesSKU, setConsumerReceivesSKU] = useState('')
 
     const handleConsumerReceives = async () => {
-        try {
-        const receivedResult = await contract.methods.DispatcherDispatchesOrder(receiveDispatcherDispatchSKU).send({from: web3Account})
-        console.log('dispatcher dispatches order', receivedResult)
-        } catch(err) {
-        console.log(err)
-        }
-    }
-
-    /* Handle Consumer Receive Item ************************ */
-    const [receiveConsumerReceivesSKU, setDispatcherDispatchSKU] = useState('')
-
-    const handleDispatcherDispatch = async () => {
         try {
         const receivedResult = await contract.methods.ConsumerReceivesItem(receiveConsumerReceivesSKU).send({from: web3Account})
         console.log('consumer receive item result', receivedResult)
@@ -266,18 +271,154 @@ const Content = () => {
         }
     }
 
-
-    
-
-
-
-    
-
-
+   
 
     return (
         <ContentWrapper>
-            <h1>Coming soon!!!</h1>
+            <Tabs />
+            <DappContentWrapper>
+                <InputWrapper style={{display: productOverview ? 'felx': 'none'}}>
+                    <Tippy content={<ToolTip>Enter SKU to get food and product details </ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={e => setSKU(e.target.value) }  value={ sku } />
+                    </Tippy>
+                    <button onClick={ handleOverview }>Overview</button>
+                </InputWrapper>
+
+                <OverviewWrapper style={{display: productOverview ? 'flex' : 'none'}}>
+                    <h3>Restaurant Overview</h3>
+                    { itemSKU ? <p>SKU: { itemSKU }</p> : null}
+                    { originRestaurantName ? <p>Restaurant Name: { originRestaurantName }</p> : null}
+                    { originRestaurantID ? <p>Restaurant ID:  { originRestaurantID.substring(0, 30) }</p> : null}
+                    { originRestaurantInfo ? <p>Restaurant Info: { originRestaurantInfo }</p> : null}
+                </OverviewWrapper >
+
+                <OverviewWrapper style={{display: productOverview ? 'flex' : 'none'}}>
+                    <h3>Product Overview</h3>
+                    { status ? <p>Status: { status }</p> : null}
+                    { productPrice ? <p>Product Price: { fromWei(productPrice) }ETH</p> : null}
+                    { fetchedProductNotes ? <p>Product Notes: { fetchedProductNotes }</p> : null }
+                    { ownerID ? <p>Owner: { ownerID.substring(0, 30) }</p> : null }
+                    { dispatcherID ? <p>Distributor: { dispatcherID.substring(0, 30) }</p> : null}
+                    { consumerID ? <p>Consumer: { consumerID.substring(0, 30) }</p> : null }
+                </OverviewWrapper > 
+
+                <InputWrapper style={{display: restaurantDetails ? 'flex' : 'none'}}>
+                    <Tippy content={<ToolTip>Only owner can add restaurant</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={ handleAddRestaurantChange } name='SKU' value={ restaurant.SKU } /> 
+                        
+                    </Tippy>
+                        <input type="text" placeholder='Enter Prospective Restaurant Address' onChange={ handleAddRestaurantChange } name='address'  value={ restaurant.address } />
+                    <button onClick={ addRestaurantAccount }>Add Farmer</button>
+                </InputWrapper>
+
+                <InputWrapper style={{display: restaurantDetails ? 'flex' : 'none'}}>
+                    <Tippy content={ <ToolTip>Only restaurant can confirm order</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={e => setReceiveSKU(e.target.value) }  name='SKU' value={ dispatcher } />
+                    </Tippy>
+                    <button onClick={ handleReceive }>Dispatch</button>
+                </InputWrapper>
+
+
+                <InputWrapper style={{display: restaurantDetails ? 'flex' : 'none'}}>
+                    <Tippy content={<ToolTip>Only farmer can harvest item</ToolTip>}>
+                        <input type="text" placeholder='Restaurant Name' onChange={handleChange } name='farmName'  value={ restaurantName } />
+                    </Tippy>
+                    <input type="text" placeholder='Restaurant Info' onChange={ handleChange } name='farmInfo' value={ restaurantInfo } />
+                    <input type="text" placeholder='Product Notes' onChange={ handleChange } name='productNotes'  value={ productNotes } />
+                    <button onClick={ handleCook }>Cook</button>
+                </InputWrapper>
+
+                <InputWrapper style={{display: restaurantDetails ? 'flex' : 'none'}}>
+                    <Tippy content={<ToolTip>Only restaurant can process item</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={e => setProcessSKU(e.target.value) }  value={ processSKU } />
+                    </Tippy>
+                    <button onClick={ handleProcess }>Process</button>
+                </InputWrapper>
+                
+
+                <InputWrapper style={{display: restaurantDetails ? 'flex' : 'none'}}>
+                    <Tippy content={ <ToolTip>Only restaurant can pack item</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={e => setPackSKU(e.target.value) }  value={ packSKU } />
+                    </Tippy>
+                    <button onClick={ handlePack }>Pack</button>
+                </InputWrapper>
+                
+                <InputWrapper style={{display: restaurantDetails ? 'flex' : 'none'}}>
+                    <Tippy content={ <ToolTip>Only restaurant can send item to initialDispatcherState</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={e => setDispatchSKU(e.target.value) }  name='SKU' value={ dispatcher } />
+                    </Tippy>
+                    <button onClick={ handleDispatch }>Dispatch</button>
+                </InputWrapper>
+
+                {/* Product ************************ ************************ ************************  */}
+
+                <ProductWrapper style={{display: productDetails ? 'flex' : 'none'}}>
+                    <Tippy content={<ToolTip>Only deployer can add consumer</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={ handleAddConsumerChange } name='SKU' value={ consumer.SKU } />
+                    </Tippy>
+                    <input type="text" placeholder='Enter Prospective Consumer Address' onChange={ handleAddConsumerChange } name='address'  value={ consumer.address } />
+                    <button onClick={ addConsumerAccount }>Add Consumer</button>
+
+                    <Tippy content={<ToolTip>Only consumer can order item</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={e => setOrderSKU(e.target.value) }  value={ orderSKU }  style={{marginTop: '20vh'}}/>
+                    </Tippy>
+                    <button onClick={ handleOrder }>Purchase</button>
+
+                    <Tippy content={<ToolTip>Only distributor can buy</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={handlePayChange}  name='SKU' value={ paySKU.SKU }  style={{marginTop: '20vh'}}/>
+                    </Tippy>
+                    <input type="number" placeholder='Enter Amount in ETH' onChange={handlePayChange} name='price' value={ paySKU.price }  />
+                    <button onClick={ handlePay }>Buy</button>
+                </ProductWrapper>
+
+
+                <ProductWrapper style={{display: productDetails ? 'flex' : 'none'}}>
+                    <Tippy content={<ToolTip>Only deployer can add consumer</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={ handleAddConsumerChange } name='SKU' value={ consumer.SKU } />
+                    </Tippy>
+                    <input type="text" placeholder='Enter Prospective Consumer Address' onChange={ handleAddConsumerChange } name='address'  value={ consumer.address } />
+                    <button onClick={ addConsumerAccount }>Add Consumer</button>
+
+                    <Tippy content={<ToolTip>Only consumer can order item</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={e => setOrderSKU(e.target.value) }  value={ orderSKU }  style={{marginTop: '20vh'}}/>
+                    </Tippy>
+                    <button onClick={ handleOrder }>Purchase</button>
+
+                    <Tippy content={<ToolTip>Only distributor can buy</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={handlePayChange}  name='SKU' value={ paySKU.SKU }  style={{marginTop: '20vh'}}/>
+                    </Tippy>
+                    <input type="number" placeholder='Enter Amount in ETH' onChange={handlePayChange} name='price' value={ paySKU.price }  />
+                    <button onClick={ handlePay }>Buy</button>
+                </ProductWrapper>
+
+                <ProductWrapper style={{display: productDetails ? 'flex' : 'none'}}>
+                    <Tippy content={<ToolTip>Only deployer can add dispatcher</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={ handleDispatcherChange }  value={ receiveSKU } />
+                    </Tippy>
+                    {console.log('receive sku', receiveSKU)}
+                    <button onClick={ addDispatcherAccount }>Receive</button>
+
+                    <Tippy content={<ToolTip>Only dispatcher can receive order from restaurant</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={ e => setReceiveDispatchedSKU(e.target.value) }  value={ receiveDispatchedSKU } />
+                    </Tippy>
+                    <button onClick={ handlereceiveDispatched }>Buy</button>
+
+                    <Tippy content={<ToolTip>Only dispatcher can send order to consumer</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={ e => setDispatcherDispatchSKU(e.target.value) }  value={ receiveDispatcherDispatchSKU } />
+                    </Tippy>
+                    <button onClick={ handleDispatcherDispatch }>Buy</button>
+                </ProductWrapper>
+
+                <ProductWrapper style={{display: productDetails ? 'flex' : 'none'}}>
+                    <Tippy content={<ToolTip>Only consumer can confirm order order from dispatcher</ToolTip>}>
+                        <input type="number" placeholder='Enter SKU' onChange={ e => setConsumerReceivesSKU(e.target.value) }  value={ receiveConsumerReceivesSKU } />
+                    </Tippy>
+                    <button onClick={ handleConsumerReceives }>Buy</button>
+                </ProductWrapper>
+
+
+
+            </DappContentWrapper>
         </ContentWrapper>
     )
 }

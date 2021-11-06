@@ -277,7 +277,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
       emit LogItemPacked(_sku, block.timestamp);
     }
 
-    function DispatchOrder (uint _sku) public checkSKU(_sku) packed(_sku) onlyRestaurant  {
+    function DispatchOrder(uint _sku) public checkSKU(_sku) packed(_sku) onlyRestaurant  {
       items[_sku].itemState = State.Dispatched;
       emit LogItemDispatched(_sku, block.timestamp);
     }
@@ -298,7 +298,6 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
 
     function ConsumerReceivesItem(uint _sku) public checkSKU(_sku) dispatchersent(_sku) onlyConsumer  {
       items[_sku].itemState = State.Confirmed;
-      // transferOwnershipToConsumer(_sku, msg.sender);
       emit LogItemConfirmed(_sku, block.timestamp);
     }
 

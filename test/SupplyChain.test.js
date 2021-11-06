@@ -104,7 +104,7 @@ contract('Supply Chain', async accountsPayload => {
         const orderProductDetails = await supplyChain.fetchProductDetails(sku)
         const { status } = orderProductDetails
 
-        assert.equal(status, '')
+        assert.equal(status, 'Received')
         assert.equal(eventEmitted, true, 'Error: event not emitted')
       })
 
@@ -211,7 +211,7 @@ contract('Supply Chain', async accountsPayload => {
         const orderProductDetails = await supplyChain.fetchProductDetails(sku)
         const { status } = orderProductDetails
 
-        assert.equal(status, 'Received')
+        assert.equal(status, 'DispatchedReceived')
         assert.equal(eventEmitted, true, 'Error: event not emitted')
       })
 
@@ -228,7 +228,7 @@ contract('Supply Chain', async accountsPayload => {
         const orderProductDetails = await supplyChain.fetchProductDetails(sku)
         const { status } = orderProductDetails
 
-        assert.equal(status, '')
+        assert.equal(status, 'DispatchSent')
         assert.equal(eventEmitted, true, 'Error: event not emitted')
       })
 
