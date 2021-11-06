@@ -2,7 +2,7 @@ import { useContext, useEffect } from "react";
 import { AccountContext } from "../contexts/account-context";
 import { FunctionContext } from "../contexts/function-context"
 import { getWeb3 } from "../../utils/getWeb3"
-import Content from "../content/content.component"
+import Content from '../content/content.component'
 import { MainLayoutWrapper } from "./main-layout.style"
 import SupplyChainContract from "../../abi/SupplyChain.json"
 
