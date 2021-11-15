@@ -1,13 +1,6 @@
 const SupplyChain = artifacts.require('SupplyChain')
 let supplyChain, accounts, deployer, restaurant, dispatcher, consumer, randomAccount
 
-// harvest parameters
-let originRestaurantID
-let originRestaurantName = 'Chop Complete'
-let originRestaurantInfo = 'Best Healthy Meal'
-
-let productNotes = 'Healthy Food'
-
 // conversion helpers
 const toWei = payload => web3.utils.toWei(payload.toString(), 'ether')
 const fromWei = payload => web3.utils.fromWei(payload.toString(), 'ether')
@@ -38,22 +31,6 @@ contract('Supply Chain', async accountsPayload => {
         })
     })
 
-  contract('Revert Non-Restaurant', () => {
-        let ownerID = deployer
-        let originRestaurantID = deployer
-        let originRestaurantID2 = restaurant
-
-        it('Disallows non-restaurant attempt to cook orders', async() => {
-          const REVERT  = 'Returned error: VM Exception while processing transaction: revert only restaurant can call function'
-            try {
-                await supplyChain
-                    .CookOrder(originRestaurantName, originRestaurantInfo, productNotes, { from: dispatcher})
-                    throw null
-            } catch(err) {
-                assert(err.message.startsWith(REVERT), `Expected ${REVERT} but got ${err.message} instead`)
-            }
-        })
-    })
 
     contract('Supply Chain Phases', () => {
       it('Allows consumer to order item', async () => {
@@ -113,34 +90,14 @@ contract('Supply Chain', async accountsPayload => {
 
         let eventEmitted = false
 
-        await supplyChain.CookOrder(originRestaurantName, originRestaurantInfo, productNotes, {from: restaurant})
+        await supplyChain.CookOrder(sku, {from: restaurant})
         await supplyChain.LogItemCooked((err, res) => eventEmitted = true)
         
+        // const cookRestaurantDetails = await supplyChain.fetchRestaurantDetails.call(sku)
 
-        const cookRestaurantDetails = await supplyChain.fetchRestaurantDetails.call(sku)
+        const cookRestaurantDetails = await supplyChain.fetchProductDetails(sku)
+        const { status } = cookRestaurantDetails
 
-        const { 
-          itemSKU, 
-          ownerID: fetchedOwner, 
-          originRestaurantID: fetchedRestaurant, 
-          originRestaurantName: fetchedRestaurantName,
-          originRestaurantInfo: fetchedRestaurantInfo,
-        } = cookRestaurantDetails
-        
-
-        const orderProductDetails = await supplyChain.fetchProductDetails(sku)
-        const { itemUPC, productNotes: fetchedProductNotes, status } = orderProductDetails
-
-        // restaurant 
-        assert.equal(itemSKU, sku)
-        assert.equal(fetchedOwner, restaurant)
-        assert.equal(fetchedRestaurant, restaurant)
-        assert.equal(fetchedRestaurantName, originRestaurantName)
-        assert.equal(fetchedRestaurantInfo, originRestaurantInfo)
-
-        // product
-        assert.equal(itemUPC, sku)
-        assert.equal(fetchedProductNotes, productNotes)
         assert.equal(status, 'Cooked')
         assert.equal(eventEmitted, true, 'Error: LogItemCooked event not emitted')
 
@@ -218,9 +175,6 @@ contract('Supply Chain', async accountsPayload => {
       it('Allows dispatcher to send order to consumer', async () => {
         const sku =1
 
-        // await supplyChain.transferOwnershipToAccount(dispatcher, {from: restaurant})
-        // await supplyChain.enableDisapatcherAccount(sku, dispatcher, {from: deployer})
-
         let eventEmitted = false
         await supplyChain.DispatcherDispatchesOrder(sku, {from: dispatcher})
         await supplyChain.LogDispatchSent((err, res) => eventEmitted = true)
@@ -236,9 +190,6 @@ contract('Supply Chain', async accountsPayload => {
 
       it('Allows consumer to mark order as confirmed', async () => {
         const sku =1
-
-        // await supplyChain.transferOwnershipToAccount(consumer, {from: restaurant})
-        // await supplyChain.enableConsumerAccount(sku, consumer, {from: deployer})
 
         let eventEmitted = false
         await supplyChain.ConsumerReceivesItem(sku, {from: consumer})

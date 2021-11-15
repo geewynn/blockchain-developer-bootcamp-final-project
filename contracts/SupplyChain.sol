@@ -184,15 +184,16 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
     notZeroAddress(_account)
     {
       _addRestaurant(_account);
-      items[_sku].ownerID = _account;
-      transferOwnershipToAccount(_account);
+      items[_sku].originRestaurantID = _account;
+      // transferOwnershipToAccount(_account);
     }
 
 
-    function transferOwnershipToDispatcher(uint _sku, address _account) notZeroAddress(_account) public {
+    function transferOwnershipToDispatcher(uint _sku, address _account) public notZeroAddress(_account) {
       address dispatcher = items[_sku].dispatcherID;
       require(_account == dispatcher, 'must be ready to be dispatched');
       owner = dispatcher;
+      items[_sku].ownerID = dispatcher;
     }
 
 
@@ -201,7 +202,7 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
       items[_sku].dispatcherID = _account;
     }
 
-    function enableConsumerAccount(uint _sku, address _account) public onlyDispatcher checkSKU(_sku) notZeroAddress(_account) {
+    function enableConsumerAccount(uint _sku, address _account) public checkSKU(_sku) notZeroAddress(_account) onlyDispatcher {
       _addConsumer(_account);
       items[_sku].consumerID = _account;
     }
@@ -243,27 +244,9 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
 
 
     function CookOrder(
-      string memory _originRestaurantName, 
-      string memory _originRestaurantInfo,
-      string memory _productNotes
+      uint _sku
     ) public onlyRestaurant {
-      sku += 1;
-      uint productID = upc + sku;
-      items[sku] = Item({
-        sku: sku,
-        upc: sku,
-        ownerID: owner,
-        originRestaurantID: owner,
-        originRestaurantName: _originRestaurantName,
-        originRestaurantInfo: _originRestaurantInfo,
-        productID: productID,
-        productNotes: _productNotes,
-        productPrice: 0,
-        itemState: State.Cooked,
-        dispatcherID: address(0),
-        consumerID: address(0)
-      });
-
+      items[_sku].itemState = State.Cooked;
       emit LogItemCooked(sku, block.timestamp);
     }
 
@@ -285,7 +268,6 @@ contract SupplyChain is RestaurantRole, DispatcherRole, ConsumerRole, Ownable {
 
     function ReceiveDispatchedOrder(uint _sku) public checkSKU(_sku) dispatch(_sku) onlyDispatcher  {
       items[_sku].itemState = State.DispatchedReceived;
-      transferOwnershipToDispatcher(_sku, msg.sender);
       emit LogDis(_sku, block.timestamp);
     }
 

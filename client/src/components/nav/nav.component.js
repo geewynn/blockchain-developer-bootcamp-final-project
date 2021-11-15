@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { Link } from 'react-router-dom'
-import { AccountContext } from '../contexts/account-context'
+import { AccountContext } from '../../contexts/account-context'
 import { NavBarWrapper, NavBarItems, Logo, Hamburger, ConnectWallet } from './nav.style'
 
 
@@ -13,7 +13,7 @@ const Navbar = () => {
     return (
       <NavBarWrapper toggleNav={ toggleNav }>
         <Logo>
-          <Link to='/'>SupplyChainDapp</Link>
+          <Link to='/'>Food Order Supply Chain Dapp </Link>
         </Logo>
         <Hamburger  onClick={()  => {
           setToggleNav(prev => !prev)}

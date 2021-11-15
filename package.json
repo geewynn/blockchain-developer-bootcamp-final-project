@@ -1,0 +1,27 @@
+{
+  "name": "blockchain-developer-bootcamp-final-project",
+  "version": "1.0.0",
+  "description": "## Project Description The purpose of this project is to learn lower level components of establishing a sound web service architecture using Blockchain.  In this project, I created a DAPP food delivery supply chain solution on Ethereum using smart contracts to track and verify a order authenticity.",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "@truffle/hdwallet-provider": "^1.6.0",
+    "dotenv": "^10.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/geewynn/blockchain-developer-bootcamp-final-project.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/geewynn/blockchain-developer-bootcamp-final-project/issues"
+  },
+  "homepage": "https://github.com/geewynn/blockchain-developer-bootcamp-final-project#readme"
+}

@@ -13,7 +13,7 @@ const TabWrapper = styled.div`
   // color: #6ffbff;
   
 
-  overflow: hidden;
+  overflow: auto;
 
   width: 100%;
   height: 8vh;
