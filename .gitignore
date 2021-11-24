@@ -27,3 +27,6 @@ yarn-debug.log*
 yarn-error.log*
 thingstodo.txt
 client/yarn.lock
+client/package-lock.json 
+client/yarn.lock
+package-lock.json
