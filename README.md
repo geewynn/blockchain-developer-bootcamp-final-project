@@ -129,4 +129,4 @@ There are 3 ways to interact with this DApp.
   * If you do not have Metamask browser extension, install Metamask in your browser. Connect your Metamask wallet and start interacting with the app.
   
 #### Interact via Etherscan
-  * You may also choose to interact with the dapp contract via [Etherscan Rinkeby.](https://rinkeby.etherscan.io/address/)
+  * You may also choose to interact with the dapp contract via [Etherscan Rinkeby.](https://rinkeby.etherscan.io/address/0x335410dFc0e59594a467D38fD7c10ad816531a8C)
