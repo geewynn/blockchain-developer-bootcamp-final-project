@@ -108,9 +108,10 @@ The front-end is built using React library with the necessary Hooks, components 
     ' contracts_build_directory: path.join(__dirname, '/client/src/abi'),'
 
 ## Deployed address and Verification
-The contract is deployed and verified on Rinkeby testnet at 
+The contract is deployed and verified on Rinkeby testnet at 0x335410dFc0e59594a467D38fD7c10ad816531a8C
 
 ## Screencast
+[Screencast](https://youtu.be/Mz9NCRcNW2Q)
 
 
 ## How to Interact with the DApp

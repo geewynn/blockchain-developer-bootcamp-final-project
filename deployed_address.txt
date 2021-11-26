@@ -1,2 +1,3 @@
 contract address: 0xD4dcadA5EF0Ed7f7FA02204F1981345Af88a963a
 supplychain address: 0xD4dcadA5EF0Ed7f7FA02204F1981345Af88a963a
+deployed address: 0x335410dFc0e59594a467D38fD7c10ad816531a8C
