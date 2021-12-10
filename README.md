@@ -117,7 +117,7 @@ The contract is deployed and verified on Rinkeby testnet at 0x335410dFc0e59594a4
 ## How to Interact with the DApp
 There are 3 ways to interact with this DApp.
 #### Interact through publicly deployed web interface
-* Go to: 
+* Go to: https://tight-term-5317.on.fleek.co/
 * If you do not have a Metamask browser extension, install Metamask in your browser. Connect your Metamask wallet and start interacting with the app.
 #### Interact through local network
   * Download this folder 
@@ -130,3 +130,7 @@ There are 3 ways to interact with this DApp.
   
 #### Interact via Etherscan
   * You may also choose to interact with the dapp contract via [Etherscan Rinkeby.](https://rinkeby.etherscan.io/address/0x335410dFc0e59594a467D38fD7c10ad816531a8C)
+
+Eth Address for NFT certificate
+
+0xa8776ceed06AC0C5ECd40775f4D7121ABff2ed29
